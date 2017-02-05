@@ -39,19 +39,6 @@ public:
          return label;
      }
     
-    /*
-    bool checkFormerSame(std::vector<int> a,std::vector<int> b, int k){
-        //maybe can pop one item of each vector and compare
-        bool label = true;
-        for(int i=k-2;i>-1;i--){
-            if(a.at(i) != b.at(i)){
-                label = false;
-                break;
-            }
-        }
-        return label;
-    }
-    */
     void setMyVector(std::vector<std::vector<int>> myVectorTemp){
         myvectorEachNumber = myVectorTemp;
     }
@@ -202,72 +189,6 @@ public:
         }
         return myvector;
     }
-    /*
-     bool checkIn(std::vector<int> oneCandidate, std::unordered_set<int> oneTrans){
-     bool label = true;
-     std::unordered_set<int>::const_iterator got;
-     //for (unsigned i=0; i<oneCandidate.size(); i++){
-     for (std::vector<int>::iterator it = oneCandidate.begin() ; it != oneCandidate.end(); ++it){
-     //got = oneTrans.find (oneCandidate.at(i));
-     got = oneTrans.find (*it);
-     if (got == oneTrans.end()){
-     label = false;
-     break;
-     }
-     }
-     return label;
-     }
-     
-     int countNumber(std::vector<int> oneCandidate){
-     int number = 0;
-     for (int i=0; i<transList.size(); i++){
-     if(checkIn(oneCandidate, transList.at(i))){
-     number = number + 1;
-     }
-     }
-     return number;
-     }
-     
-     std::vector<std::vector<int>> checkCandidate(std::vector<std::vector<int>> candidate,int threshold){
-     std::vector<std::vector<int>> candidateSurvive;
-     std::vector<int> temp;
-     int count;
-     for (int i=0; i<candidate.size(); i++){
-     temp = candidate.at(i);
-     count = countNumber(temp);
-     if(count>=threshold){
-     candidateSurvive.push_back(temp);
-     }
-     }
-     return candidateSurvive;
-     }
-     */
-    /*
-    std::vector<std::vector<int>> checkCandidate(std::vector<std::vector<int>> candidate,int threshold){
-        std::vector<std::vector<int>> candidateSurvive;
-        int temp;
-        
-        for(int i=0; i<candidate.size(); i++){
-            temp = 0;
-            for(auto& transaction: transList){
-                bool label = true;
-                for (std::vector<int>::iterator it = candidate.at(i).begin() ; it != candidate.at(i).end(); ++it){
-                    if(transaction.find(*it)==transaction.end()){
-                        label = false;
-                        break;
-                    }
-                }
-                if(label){
-                    temp = temp + 1;
-                }
-            }
-            if(temp>=threshold){
-                candidateSurvive.push_back(candidate.at(i));
-            }
-        }
-        return candidateSurvive;
-    }
-    */
 };
 
 vector< vector<int> > getAllSubsets(vector<int> set)
