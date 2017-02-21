@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <ctime>
 #include <map>
+#include <iomanip>
 using namespace std;
 
 class apriori
@@ -274,13 +275,19 @@ int getResultCountAndPrintResult(vector<std::vector<std::vector<int>>> result, b
 }
 
 void printFrequentItemsets(std::vector<std::map<std::vector<int>,int>> prepareForPrintFrequentItemsets, int lineNumber){
-    for (int i=0; i<prepareForPrintFrequentItemsets.size(); i++){
-        for (std::map<std::vector<int>,int>::iterator it=prepareForPrintFrequentItemsets.at(i).begin(); it!=prepareForPrintFrequentItemsets.at(i).end(); ++it){
-            for (int j=0; j<it->first.size()-1; j++){
-                std::cout << it->first.at(j) << ",";
+    ofstream file_("/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/freq.txt");
+    if(file_.is_open()){
+        for (int i=0; i<prepareForPrintFrequentItemsets.size(); i++){
+            for (std::map<std::vector<int>,int>::iterator it=prepareForPrintFrequentItemsets.at(i).begin(); it!=prepareForPrintFrequentItemsets.at(i).end(); ++it){
+                for (int j=0; j<it->first.size()-1; j++){
+                    //std::cout << it->first.at(j) << ",";
+                    file_ << std::fixed << std::setprecision(2) << it->first.at(j) << ",";
+                }
+                //std::cout << it->first.at(it->first.size()-1) << " ";
+                file_ << std::fixed << std::setprecision(2) << it->first.at(it->first.size()-1) << " ";
+                //std::cout << "(" << float(it->second)/float(lineNumber) << ")" << std::endl;
+                file_ << "(" << float(it->second)/float(lineNumber) << ")" << std::endl;
             }
-            std::cout << it->first.at(it->first.size()-1) << " ";
-            std::cout << "(" << float(it->second)/float(lineNumber) << ")" << std::endl;
         }
     }
 }
@@ -288,12 +295,12 @@ void printFrequentItemsets(std::vector<std::map<std::vector<int>,int>> prepareFo
 int main (int argc, char *argv[])
 {
     std::clock_t start = std::clock();
-    //string name = argv[2];
-    string name = "/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/test_easy.txt";
-    int threshold = 2;
+    string name = argv[2];
+    //string name = "/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/test_easy.txt";
+    //int threshold = 2;
     float confidence = 0.8;
-    //string mystring = argv[4];
-    //int threshold = atoi(mystring.c_str());
+    string mystring = argv[4];
+    int threshold = atoi(mystring.c_str());
     string line_;
     ifstream file_(name);
     int buf;
