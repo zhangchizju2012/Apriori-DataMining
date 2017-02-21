@@ -273,15 +273,27 @@ int getResultCountAndPrintResult(vector<std::vector<std::vector<int>>> result, b
     return resultCount;
 }
 
+void printFrequentItemsets(std::vector<std::map<std::vector<int>,int>> prepareForPrintFrequentItemsets, int lineNumber){
+    for (int i=0; i<prepareForPrintFrequentItemsets.size(); i++){
+        for (std::map<std::vector<int>,int>::iterator it=prepareForPrintFrequentItemsets.at(i).begin(); it!=prepareForPrintFrequentItemsets.at(i).end(); ++it){
+            for (int j=0; j<it->first.size()-1; j++){
+                std::cout << it->first.at(j) << ",";
+            }
+            std::cout << it->first.at(it->first.size()-1) << " ";
+            std::cout << "(" << float(it->second)/float(lineNumber) << ")" << std::endl;
+        }
+    }
+}
+
 int main (int argc, char *argv[])
 {
     std::clock_t start = std::clock();
-    string name = argv[2];
-    //string name = "/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/test_easy.txt";
-    //int threshold = 2;
+    //string name = argv[2];
+    string name = "/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/test_easy.txt";
+    int threshold = 2;
     float confidence = 0.8;
-    string mystring = argv[4];
-    int threshold = atoi(mystring.c_str());
+    //string mystring = argv[4];
+    //int threshold = atoi(mystring.c_str());
     string line_;
     ifstream file_(name);
     int buf;
@@ -316,24 +328,31 @@ int main (int argc, char *argv[])
     apriori a;
     a.setTransList(transList);
     
-    
     std::unordered_map<int,std::map<std::vector<int>,int>> freqItemSetsAndNumber;
+    // key: size of each itemset (eg. freqItemSet:(2,3,4), size is 3) value: tempFreqItemSetsAndNumber
+    // prepare for Association Rule generation
     std::map<std::vector<int>,std::vector<int>> survive;
-    //std::vector<std::vector<int>> candidate;
+    // key: itemset with min_support; value: transactions which have itemset
     std::vector<std::vector<std::vector<int>>> result;
+    // constituted by tempResult
     std::map<std::vector<int>,int> tempFreqItemSetsAndNumber;
+    // key: itemset with min_support; value: number of transactions which have itemset
+    std::vector<std::vector<int>> tempResult;
+    // each member in tempResult is itemset with min_support
+    std::vector<std::map<std::vector<int>,int>> prepareForPrintFrequentItemsets;
+    // constituted by tempFreqItemSetsAndNumber
     
     survive = a.firstPass(freqList, threshold);
     
     cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
     
-    std::vector<std::vector<int>> tempResult;
     int itemSetsLength = 1;
     for ( auto it = survive.begin(); it != survive.end(); ++it ){
         tempResult.push_back(it->first);
         tempFreqItemSetsAndNumber.insert({it->first,it->second.size()});
     }
     freqItemSetsAndNumber.insert({itemSetsLength, tempFreqItemSetsAndNumber});
+    prepareForPrintFrequentItemsets.push_back(tempFreqItemSetsAndNumber);
     tempFreqItemSetsAndNumber.clear();
     
     result.push_back(tempResult);
@@ -349,6 +368,7 @@ int main (int argc, char *argv[])
             tempFreqItemSetsAndNumber.insert({it->first,it->second.size()});
         }
         freqItemSetsAndNumber.insert({itemSetsLength, tempFreqItemSetsAndNumber});
+        prepareForPrintFrequentItemsets.push_back(tempFreqItemSetsAndNumber);
         tempFreqItemSetsAndNumber.clear();
         //cout << "survive size: " << survive.size() << endl;
         result.push_back(tempResult);
@@ -356,6 +376,8 @@ int main (int argc, char *argv[])
     
     int associationRuleNumber = getAssociationRuleNumber(freqItemSetsAndNumber, result, confidence);
     int resultCount = getResultCountAndPrintResult(result,false);
+    printFrequentItemsets(prepareForPrintFrequentItemsets,lineNumber);
+    
     
     cout << endl;
     cout << "result count: " << resultCount << endl;
