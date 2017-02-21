@@ -79,7 +79,9 @@ public:
     }
     
     
-    std::map<std::vector<int>,std::vector<int>> candidateGen(std::map<std::vector<int>,std::vector<int>> myvector, int threshold, std::vector<std::vector<int>> tempResult){
+    std::map<std::vector<int>,std::vector<int>> candidateGen(std::map<std::vector<int>,std::vector<int>> myvector,
+                                                             int threshold,
+                                                             std::vector<std::vector<int>> tempResult){
         std::map<std::vector<int>,std::vector<int>> result;
         std::vector<int> convergeResult;
         std::vector<int> key;
@@ -168,7 +170,8 @@ public:
     }
     
     
-    std::map<std::vector<int>,std::vector<int>> firstPass(std::unordered_map<int,std::vector<int>> freqList, int threshold){
+    std::map<std::vector<int>,std::vector<int>> firstPass(std::unordered_map<int,std::vector<int>> freqList,
+                                                          int threshold){
         //for the first time
         std::vector<int> tempVector;
         for ( auto it = freqList.begin(); it != freqList.end(); ++it ){
@@ -211,37 +214,72 @@ vector< vector<int> > getAllSubsets(vector<int> set)
     return subset;
 }
 
-int getAssociationRuleNumber(std::unordered_map<int,std::map<std::vector<int>,int>> freqItemSetsAndNumber, std::vector<std::vector<std::vector<int>>> result, float confidence, bool show=false){
+vector<int> getRemain(vector<int> all, vector<int> subset){
+    vector<int> remain;
+    int i = 0;
+    int j = 0;
+    while(i<all.size() and j<subset.size()){
+        if(all.at(i)<subset.at(j)){
+            remain.push_back(all.at(i));
+            i = i + 1;
+        }
+        else{
+            i = i + 1;
+            j = j + 1;
+        }
+    }
+    while(i<all.size()){
+        remain.push_back(all.at(i));
+        i = i + 1;
+    }
+    return remain;
+}
+
+int getAssociationRuleNumber(std::unordered_map<int,std::map<std::vector<int>,int>> freqItemSetsAndNumber,
+                             std::vector<std::vector<std::vector<int>>> result,
+                             float confidence, int lineNumber, bool show=false){
     vector< vector<int> > subsets;
-    int numerator;
-    int numeratorLength;
     int denominator;
-    int denominatorLength;
+    unsigned long denominatorLength;
+    int numerator;
+    unsigned long numeratorLength;
     int associationRuleNumber = 0;
+    vector<int> remain;
+    ofstream file_("/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/rule.txt");
     for(int i=1; i<result.size()-1; i++){
         for(int j=0;j<result.at(i).size();j++){
-            denominatorLength = result.at(i).at(j).size();
-            auto it = freqItemSetsAndNumber.find(denominatorLength);
+            numeratorLength = result.at(i).at(j).size();
+            auto it = freqItemSetsAndNumber.find(int(numeratorLength));
             auto ij = it->second.find(result.at(i).at(j));
-            denominator = ij->second;
+            numerator = ij->second;
             subsets = getAllSubsets(result.at(i).at(j));
             for(int k=1;k<subsets.size()-1;k++){
-                numeratorLength = subsets.at(k).size();
-                auto im = freqItemSetsAndNumber.find(numeratorLength);
+                denominatorLength = subsets.at(k).size();
+                auto im = freqItemSetsAndNumber.find(int(denominatorLength));
                 auto in = im->second.find(subsets.at(k));
-                numerator = in->second;
-                if(float(denominator)/float(numerator)>=confidence||numerator==0){
+                denominator = in->second;
+                if(float(numerator)/float(denominator)>=confidence||denominator==0){
                     if(show){
-                        for(int m=0;m<subsets.at(k).size();m++){
-                            if(m==0){
-                                cout << "[ ";
+                        if(file_.is_open()){
+                            for(int m=0;m<subsets.at(k).size()-1;m++){
+                                cout << subsets.at(k).at(m) << ",";
+                                file_ << subsets.at(k).at(m) << ",";
                             }
-                            cout << subsets.at(k).at(m) << " ";
-                            if(m==subsets.at(k).size()-1){
-                                cout << "] " <<endl;
+                            cout << subsets.at(k).at(subsets.at(k).size()-1) << " -> " ;
+                            file_ << subsets.at(k).at(subsets.at(k).size()-1) << " -> " ;
+                            remain = getRemain(result.at(i).at(j), subsets.at(k));
+                            for(int n=0;n<remain.size()-1;n++){
+                                cout << remain.at(n) << ",";
+                                file_ << remain.at(n) << ",";
                             }
+                            cout << remain.at(remain.size()-1) << " ";
+                            file_ << remain.at(remain.size()-1) << " ";
+                            cout << "(" << std::fixed << std::setprecision(2) << float(numerator)/float(lineNumber)<< "," ;
+                            file_ << "(" << std::fixed << std::setprecision(2) << float(numerator)/float(lineNumber)<< "," ;
+                            cout << std::fixed << std::setprecision(2) << float(numerator)/float(denominator) << ")" << endl;
+                            file_ << std::fixed << std::setprecision(2) << float(numerator)/float(denominator) << ")" << endl;
                         }
-
+                        
                     }
                     associationRuleNumber = associationRuleNumber + 1;
                 }
@@ -274,7 +312,8 @@ int getResultCountAndPrintResult(vector<std::vector<std::vector<int>>> result, b
     return resultCount;
 }
 
-void printFrequentItemsets(std::vector<std::map<std::vector<int>,int>> prepareForPrintFrequentItemsets, int lineNumber){
+void printFrequentItemsets(std::vector<std::map<std::vector<int>,int>> prepareForPrintFrequentItemsets,
+                           int lineNumber){
     ofstream file_("/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/freq.txt");
     if(file_.is_open()){
         for (int i=0; i<prepareForPrintFrequentItemsets.size(); i++){
@@ -381,7 +420,7 @@ int main (int argc, char *argv[])
         result.push_back(tempResult);
     }
     
-    int associationRuleNumber = getAssociationRuleNumber(freqItemSetsAndNumber, result, confidence);
+    int associationRuleNumber = getAssociationRuleNumber(freqItemSetsAndNumber, result, confidence, lineNumber, true);
     int resultCount = getResultCountAndPrintResult(result,false);
     printFrequentItemsets(prepareForPrintFrequentItemsets,lineNumber);
     
