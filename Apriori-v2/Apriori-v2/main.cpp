@@ -29,7 +29,7 @@ public:
     }
     
      bool checkFormerSame(std::vector<int> a,std::vector<int> b, int k){
-         //maybe can pop one item of each vector and compare
+         // check whether only the last item is different
          bool label = true;
          for(int i=0;i<k-1;i++){
              if(a.at(i) != b.at(i)){
@@ -57,14 +57,14 @@ public:
     }
     
     std::vector<int> checkNumber(std::vector<int> a, std::vector<int> b){
-        std::vector<int> convergeResult;
+        std::vector<int> mergeResult;
         unsigned iA = 0;
         unsigned iB = 0;
         unsigned long lengthA = a.size();
         unsigned long lengthB = b.size();
         while(iA<lengthA && iB<lengthB){
             if(a.at(iA)==b.at(iB)){
-                convergeResult.push_back(a.at(iA));
+                mergeResult.push_back(a.at(iA));
                 iA = iA + 1;
                 iB = iB + 1;
             }
@@ -75,17 +75,34 @@ public:
                 iA = iA + 1;
             }
         }
-        return convergeResult;
+        return mergeResult;
     }
     
     
     std::map<std::vector<int>,std::vector<int>> candidateGen(std::map<std::vector<int>,std::vector<int>> myvector,
                                                              int threshold,
                                                              std::vector<std::vector<int>> tempResult){
-        // data structure of myvector
+        // data structure of 'myvector'
         // key: itemset with min_support; value: transactions which have itemset
+        // each member in 'tempResult' is itemset with min_support
+        
+        // Algorithm Desciption:
+        // Only itemsets like: {item1, item2, item3, item4} and {item1, item2, item3, item6} (only the last item is different)
+        // can generate new candidate {item1, item2, item3, item4, item6}, and you have to make sure {item2, item3, item4, item6},
+        // {item1, item3, item4, item6}, {item1, item2, item4, item6} all exist in 'tempResult',
+        // or {item1, item2, item3, item4, item6} can not become new candidate.
+        // After {item1, item2, item3, item4, item6} become new candidate, check the number of transactions which have candidate
+        
+        // Algorithm for checking the number of transactions which have candidate:
+        // the key of 'myvector' are transactions which have itemset, so we can find father itemset's transaction list from here.
+        // then we can merge two fathers' transaction lists to get candidate's transaction list.
+        // eg. itemset {item1, item2, item3, item4}'s transaction list is {tran1, tran2, tran3, tran4}
+        // itemset {item1, item2, item3, item6}'s transaction list is {tran1, tran2, tran3, tran5}
+        // then their candidate {item1, item2, item3, item4, item6}'s transaction list is {tran1, tran2, tran3, tran4, tran5}
+        // By this way, there's no need to read the original database again and again, the program can be much faster.
+        
         std::map<std::vector<int>,std::vector<int>> result;
-        std::vector<int> convergeResult;
+        std::vector<int> mergeResult;
         std::vector<int> key;
         int lenList = int(myvector.size());
         //std::cout << lenList << std::endl;
@@ -98,11 +115,11 @@ public:
                     auto temp = it;
                     ++temp;
                     for ( auto j = temp; j != myvector.end(); ++j ){
-                        convergeResult = checkNumber(it->second, j->second);
-                        if(convergeResult.size()>=threshold){
+                        mergeResult = checkNumber(it->second, j->second);
+                        if(mergeResult.size()>=threshold){
                             key.push_back(it->first.at(0));
                             key.push_back(j->first.at(0));
-                            result.insert({key,convergeResult});
+                            result.insert({key,mergeResult});
                             key.clear();
                         }
                         
@@ -123,6 +140,7 @@ public:
                     b = itB->first;
                     
                     while(checkFormerSame(a, b, length)){
+                        // check whether only the last item is different
                         ++itB;
                         gap = gap + 1;
                         bool label = true;
@@ -135,6 +153,7 @@ public:
                                 temp.push_back(a.at(n));
                             }
                             temp.push_back(b.at(length-1));
+                            
                             if(checkInList(temp, index+gap, lenList)==false){
                                 label = false;
                                 break;
@@ -142,12 +161,12 @@ public:
                         }
                         if(label==true){
                             --itB;
-                            convergeResult = checkNumber(itA->second, itB->second);
+                            mergeResult = checkNumber(itA->second, itB->second);
                             ++itB;
-                            if(convergeResult.size()>=threshold){
+                            if(mergeResult.size()>=threshold){
                                 a.push_back(b.at(length-1));
                                 key = a;
-                                result.insert({key,convergeResult});
+                                result.insert({key,mergeResult});
                                 a.pop_back();
                                 key.clear();
                             }
