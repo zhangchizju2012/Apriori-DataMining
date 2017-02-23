@@ -22,11 +22,7 @@ using namespace std;
 class apriori
 {
 public:
-    std::vector<std::unordered_set<int>> transList;
     std::vector<std::vector<int>> myvectorEachNumber;
-    void setTransList(std::vector<std::unordered_set<int>> tran){
-        transList = tran;
-    }
     
      bool checkFormerSame(std::vector<int> a,std::vector<int> b, int k){
          // check whether only the last item is different
@@ -45,6 +41,9 @@ public:
     }
     
     bool checkInList(std::vector<int> a, int k, int length){
+        // check subset such as {item2, item3, item4, item6}, {item1, item3, item4, item6}
+        // and {item1, item2, item4, item6} all exist in 'tempResult'
+        // see more details in the description of function candidateGen
         bool label = false;
         std::vector<int> temp;
         for(int i=k;i<length;i++){
@@ -57,6 +56,8 @@ public:
     }
     
     std::vector<int> checkNumber(std::vector<int> a, std::vector<int> b){
+        // function used to check the number of transactions which have candidate
+        // merge two father's transaction lists
         std::vector<int> mergeResult;
         unsigned iA = 0;
         unsigned iB = 0;
@@ -85,6 +86,7 @@ public:
         // data structure of 'myvector'
         // key: itemset with min_support; value: transactions which have itemset
         // each member in 'tempResult' is itemset with min_support
+        // return data structure: the same as 'myvector', prepare for next time's candidate generation
         
         // Algorithm Desciption:
         // Only itemsets like: {item1, item2, item3, item4} and {item1, item2, item3, item6} (only the last item is different)
@@ -153,7 +155,8 @@ public:
                                 temp.push_back(a.at(n));
                             }
                             temp.push_back(b.at(length-1));
-                            
+                            // check subset such as {item2, item3, item4, item6}, {item1, item3, item4, item6}
+                            // and {item1, item2, item4, item6} all exist in 'tempResult'
                             if(checkInList(temp, index+gap, lenList)==false){
                                 label = false;
                                 break;
@@ -162,8 +165,10 @@ public:
                         if(label==true){
                             --itB;
                             mergeResult = checkNumber(itA->second, itB->second);
+                            // merge two father's transaction lists
                             ++itB;
                             if(mergeResult.size()>=threshold){
+                                // check the number of transactions which have candidate
                                 a.push_back(b.at(length-1));
                                 key = a;
                                 result.insert({key,mergeResult});
@@ -389,37 +394,10 @@ int main (int argc, char *argv[])
     string line_;
     ifstream file_(name);
     int buf;
-    std::vector<std::unordered_set<int>> transList;
-    std::unordered_set<int> eachTran;
     std::unordered_map<int,std::vector<int>> freqList;
+    // key: item, value: transactions which have item
     std::vector<int> value;
-    int lineNumber = 0;
-    if(file_.is_open()){
-        while(getline(file_, line_)){
-            stringstream ss(line_);
-            while (ss >> buf){
-                eachTran.insert(buf);
-                auto it = freqList.find(buf);
-                if(it != freqList.end()){
-                    it->second.push_back(lineNumber);
-                }
-                else{
-                    value.push_back(lineNumber);
-                    freqList.insert({buf, value});
-                    value.clear();
-                }
-            }
-            transList.push_back(eachTran);
-            eachTran.clear();
-            lineNumber = lineNumber + 1;
-        }
-        file_.close();
-    }
-    else{cout<<"file is not open!"<<endl;}
-    
-    apriori a;
-    a.setTransList(transList);
-    
+    int lineNumber = 0; //count how many lines (transactions) in original database
     std::unordered_map<int,std::map<std::vector<int>,int>> freqItemSetsAndNumber;
     // key: size of each itemset (eg. freqItemSet:(2,3,4), size is 3) value: tempFreqItemSetsAndNumber
     // prepare for Association Rule generation
@@ -434,9 +412,31 @@ int main (int argc, char *argv[])
     std::vector<std::map<std::vector<int>,int>> prepareForPrintFrequentItemsets;
     // constituted by tempFreqItemSetsAndNumber
     
-    survive = a.firstPass(freqList, threshold);
+    if(file_.is_open()){
+        while(getline(file_, line_)){
+            stringstream ss(line_);
+            while (ss >> buf){
+                auto it = freqList.find(buf);
+                if(it != freqList.end()){
+                    it->second.push_back(lineNumber);
+                }
+                else{
+                    value.push_back(lineNumber);
+                    freqList.insert({buf, value});
+                    value.clear();
+                }
+            }
+            lineNumber = lineNumber + 1;
+        }
+        file_.close();
+    }
+    else{cout<<"file is not open!"<<endl;}
     
-    cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
+    apriori a;
+    
+    survive = a.firstPass(freqList, threshold);
+    //C2 = candidates generated from L1
+    //cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
     
     int itemSetsLength = 1;
     for ( auto it = survive.begin(); it != survive.end(); ++it ){
@@ -452,7 +452,7 @@ int main (int argc, char *argv[])
     
     while(survive.size()>0){
         survive =  a.candidateGen(survive, threshold,tempResult);
-        cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
+        //cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
         itemSetsLength = itemSetsLength + 1;
         tempResult.clear();
         for ( auto it = survive.begin(); it != survive.end(); ++it ){
