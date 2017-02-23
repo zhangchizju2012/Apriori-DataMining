@@ -81,7 +81,7 @@ public:
     
     
     std::map<std::vector<int>,std::vector<int>> candidateGen(std::map<std::vector<int>,std::vector<int>> myvector,
-                                                             int threshold,
+                                                             float threshold,
                                                              std::vector<std::vector<int>> tempResult){
         // data structure of 'myvector'
         // key: itemset with min_support; value: transactions which have itemset
@@ -197,7 +197,7 @@ public:
     
     
     std::map<std::vector<int>,std::vector<int>> firstPass(std::unordered_map<int,std::vector<int>> freqList,
-                                                          int threshold){
+                                                          float threshold){
         //C2 = candidates generated from L1
         std::vector<int> tempVector;
         for ( auto it = freqList.begin(); it != freqList.end(); ++it ){
@@ -368,7 +368,8 @@ void printFrequentItemsets(std::vector<std::map<std::vector<int>,int>> prepareFo
     ofstream file_("/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/freq.txt");
     if(file_.is_open()){
         for (int i=0; i<prepareForPrintFrequentItemsets.size(); i++){
-            for (std::map<std::vector<int>,int>::iterator it=prepareForPrintFrequentItemsets.at(i).begin(); it!=prepareForPrintFrequentItemsets.at(i).end(); ++it){
+            for (std::map<std::vector<int>,int>::iterator it=prepareForPrintFrequentItemsets.at(i).begin();
+                 it!=prepareForPrintFrequentItemsets.at(i).end(); ++it){
                 for (int j=0; j<it->first.size()-1; j++){
                     //std::cout << it->first.at(j) << ",";
                     file_ << std::fixed << std::setprecision(2) << it->first.at(j) << ",";
@@ -385,12 +386,21 @@ void printFrequentItemsets(std::vector<std::map<std::vector<int>,int>> prepareFo
 int main (int argc, char *argv[])
 {
     std::clock_t start = std::clock();
-    string name = argv[2];
+    string name = argv[1];
     //string name = "/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/test_easy.txt";
     //int threshold = 2;
-    float confidence = 0.8;
-    string mystring = argv[4];
-    int threshold = atoi(mystring.c_str());
+    float threshold = atof(argv[2]);
+    //int mystring = argv[2];
+    //int threshold = atoi(mystring.c_str());
+    float confidence = atof(argv[3]);
+    string display;
+    if(argc==5){
+        display = argv[4];
+    }
+    else{
+        display = "none";
+    }
+    cout << display << endl;
     string line_;
     ifstream file_(name);
     int buf;
@@ -431,6 +441,10 @@ int main (int argc, char *argv[])
         file_.close();
     }
     else{cout<<"file is not open!"<<endl;}
+
+    threshold = threshold * float(lineNumber);
+    //cout << threshold << endl;
+    //cout << confidence << endl;
     
     apriori a;
     
@@ -466,7 +480,32 @@ int main (int argc, char *argv[])
         result.push_back(tempResult);
     }
     
-    int associationRuleNumber = getAssociationRuleNumber(freqItemSetsAndNumber, result, confidence, lineNumber, true);
+    bool associationRuleDisplay;
+    bool frequentItemsetDisplay;
+    bool numberDisplay;
+    if(display=="r"){
+        associationRuleDisplay = true;
+        frequentItemsetDisplay = false;
+        numberDisplay = false;
+    }
+    else if(display=="f"){
+        associationRuleDisplay = false;
+        frequentItemsetDisplay = true;
+        numberDisplay = false;
+    }
+    else if(display=="a"){
+        associationRuleDisplay = true;
+        frequentItemsetDisplay = true;
+        numberDisplay = false;
+    }
+    else{
+        associationRuleDisplay = false;
+        frequentItemsetDisplay = false;
+        numberDisplay = true;
+    }
+    
+    int associationRuleNumber = getAssociationRuleNumber(freqItemSetsAndNumber, result, confidence,
+                                                         lineNumber, associationRuleDisplay);
     int resultCount = getResultCountAndPrintResult(result,false);
     printFrequentItemsets(prepareForPrintFrequentItemsets,lineNumber);
     
