@@ -280,7 +280,7 @@ int getAssociationRuleNumber(std::unordered_map<int,std::map<std::vector<int>,in
     // eg. itemset size -> {2:({item6,item7}:{trans1},{item4,item8}:{trans3,trans8,trans11}),
     //     itemset size -> 3:({item1,item2,item3}:{trans1,trans2,trans5,trans8},{item1,item4,item8}:{trans2,trans8})}
     
-    // each member in result is itemset with min_support
+    // each member in 'result' is itemset with min_support
     
     // Generating Association Rules from Frequent Itemsets
     // Algorithm Description:
@@ -295,7 +295,7 @@ int getAssociationRuleNumber(std::unordered_map<int,std::map<std::vector<int>,in
     unsigned long numeratorLength;
     int associationRuleNumber = 0;//count association Rule number
     vector<int> remain;
-    ofstream file_("/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/rule.txt"); //for rule.txt file
+    //ofstream file_("/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/rule.txt"); //for rule.txt file
     for(int i=1; i<result.size()-1; i++){
         for(int j=0;j<result.at(i).size();j++){
             numeratorLength = result.at(i).at(j).size();
@@ -311,25 +311,23 @@ int getAssociationRuleNumber(std::unordered_map<int,std::map<std::vector<int>,in
                 // Confidence(A->B) = Prob(B/A) = Support(A->B)/Support(A) = #(X&Y)/#X
                 if(float(numerator)/float(denominator)>=confidence||denominator==0){
                     if(show){
-                        if(file_.is_open()){
-                            for(int m=0;m<subsets.at(k).size()-1;m++){
-                                //cout << subsets.at(k).at(m) << ",";
-                                file_ << subsets.at(k).at(m) << ",";
-                            }
-                            //cout << subsets.at(k).at(subsets.at(k).size()-1) << " -> " ;
-                            file_ << subsets.at(k).at(subsets.at(k).size()-1) << " -> " ;
-                            remain = getRemain(result.at(i).at(j), subsets.at(k));
-                            for(int n=0;n<remain.size()-1;n++){
-                                //cout << remain.at(n) << ",";
-                                file_ << remain.at(n) << ",";
-                            }
-                            //cout << remain.at(remain.size()-1) << " ";
-                            file_ << remain.at(remain.size()-1) << " ";
-                            //cout << "(" << std::fixed << std::setprecision(2) << float(numerator)/float(lineNumber)<< "," ;
-                            file_ << "(" << std::fixed << std::setprecision(2) << float(numerator)/float(lineNumber)<< "," ;
-                            //cout << std::fixed << std::setprecision(2) << float(numerator)/float(denominator) << ")" << endl;
-                            file_ << std::fixed << std::setprecision(2) << float(numerator)/float(denominator) << ")" << endl;
+                        for(int m=0;m<subsets.at(k).size()-1;m++){
+                            cout << subsets.at(k).at(m) << ",";
+                            //file_ << subsets.at(k).at(m) << ",";
                         }
+                        cout << subsets.at(k).at(subsets.at(k).size()-1) << " -> " ;
+                        //file_ << subsets.at(k).at(subsets.at(k).size()-1) << " -> " ;
+                        remain = getRemain(result.at(i).at(j), subsets.at(k));
+                        for(int n=0;n<remain.size()-1;n++){
+                            cout << remain.at(n) << ",";
+                            //file_ << remain.at(n) << ",";
+                        }
+                        cout << remain.at(remain.size()-1) << " ";
+                        //file_ << remain.at(remain.size()-1) << " ";
+                        cout << "(" << std::fixed << std::setprecision(2) << float(numerator)/float(lineNumber)<< "," ;
+                        //file_ << "(" << std::fixed << std::setprecision(2) << float(numerator)/float(lineNumber)<< "," ;
+                        cout << std::fixed << std::setprecision(2) << float(numerator)/float(denominator) << ")" << endl;
+                        //file_ << std::fixed << std::setprecision(2) << float(numerator)/float(denominator) << ")" << endl;
                         
                     }
                     associationRuleNumber = associationRuleNumber + 1;
@@ -340,9 +338,10 @@ int getAssociationRuleNumber(std::unordered_map<int,std::map<std::vector<int>,in
     return associationRuleNumber;
 }
 
-int getResultCountAndPrintResult(vector<std::vector<std::vector<int>>> result, bool show=true){
+int getResultCountAndPrintResult(vector<std::vector<std::vector<int>>> result, bool numberDisplay, bool show=true){
     int resultCount = 0;
     int resultTemp = 0;
+    int count = 1;
     for (int i=0; i<result.size()-1; i++){
         for(int j=0;j<result.at(i).size();j++){
             for(int k=0;k<result.at(i).at(j).size();k++){
@@ -357,27 +356,26 @@ int getResultCountAndPrintResult(vector<std::vector<std::vector<int>>> result, b
                 }
             }
         }
-        cout << "result count: " << resultCount - resultTemp << endl;
+        if(numberDisplay==true){
+        cout << "Number of frequent " << count << "_itemsets: "<< resultCount - resultTemp << endl;
+        }
+        count = count + 1;
         resultTemp = resultCount;
     }
     return resultCount;
 }
 
 void printFrequentItemsets(std::vector<std::map<std::vector<int>,int>> prepareForPrintFrequentItemsets,
-                           int lineNumber){
-    ofstream file_("/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/freq.txt");
-    if(file_.is_open()){
+                           int lineNumber, bool frequentItemsetDisplay){
+    if(frequentItemsetDisplay==true){
         for (int i=0; i<prepareForPrintFrequentItemsets.size(); i++){
             for (std::map<std::vector<int>,int>::iterator it=prepareForPrintFrequentItemsets.at(i).begin();
                  it!=prepareForPrintFrequentItemsets.at(i).end(); ++it){
                 for (int j=0; j<it->first.size()-1; j++){
-                    //std::cout << it->first.at(j) << ",";
-                    file_ << std::fixed << std::setprecision(2) << it->first.at(j) << ",";
+                    std::cout <<  std::fixed << std::setprecision(2) << it->first.at(j) << ",";
                 }
-                //std::cout << it->first.at(it->first.size()-1) << " ";
-                file_ << std::fixed << std::setprecision(2) << it->first.at(it->first.size()-1) << " ";
-                //std::cout << "(" << float(it->second)/float(lineNumber) << ")" << std::endl;
-                file_ << "(" << float(it->second)/float(lineNumber) << ")" << std::endl;
+                std::cout << std::fixed << std::setprecision(2) << it->first.at(it->first.size()-1) << " ";
+                std::cout << "(" << float(it->second)/float(lineNumber) << ")" << std::endl;
             }
         }
     }
@@ -385,6 +383,14 @@ void printFrequentItemsets(std::vector<std::map<std::vector<int>,int>> prepareFo
 
 int main (int argc, char *argv[])
 {
+    // The program can get four parameters as input: 1- file name; 2-minimum-support; and 3- minimum confidence.
+    // The thresholds should be numbers between 0 and 1. The forth parameter is either "r", "f", "a", or absent.
+    // When "r", then all strong association rules are displayed. When "f" then all frequent itemsets are displayed.
+    // When "a" then all frequent itemsets and all strong association rules are displayed. When absent, then only
+    // the number of frequent itemsets of different sizes and the number of strong rules are displayed.
+    // compile: g++ -std=c++11 -O3 -o run main.cpp
+    // use: ./run data.txt 0.001 0.8 r > temp.txt
+    
     std::clock_t start = std::clock();
     string name = argv[1];
     //string name = "/Users/zhangchi/Desktop/Apriori-DataMining/Apriori-v2/Apriori-v2/test_easy.txt";
@@ -400,7 +406,6 @@ int main (int argc, char *argv[])
     else{
         display = "none";
     }
-    cout << display << endl;
     string line_;
     ifstream file_(name);
     int buf;
@@ -506,13 +511,16 @@ int main (int argc, char *argv[])
     
     int associationRuleNumber = getAssociationRuleNumber(freqItemSetsAndNumber, result, confidence,
                                                          lineNumber, associationRuleDisplay);
-    int resultCount = getResultCountAndPrintResult(result,false);
-    printFrequentItemsets(prepareForPrintFrequentItemsets,lineNumber);
+    //int resultCount = getResultCountAndPrintResult(result,numberDisplay,false);
+    getResultCountAndPrintResult(result,numberDisplay,false);
+    printFrequentItemsets(prepareForPrintFrequentItemsets,lineNumber,frequentItemsetDisplay);
     
     
-    cout << endl;
-    cout << "result count: " << resultCount << endl;
-    cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
-    cout << "associate rule number: " << associationRuleNumber << endl;
+    //cout << endl;
+    //cout << "result count: " << resultCount << endl;
+    if(numberDisplay==true){
+    cout << "Number of association rules: " << associationRuleNumber << endl;
+    }
+    //cout << "Time: " << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
     return 0;
 }
